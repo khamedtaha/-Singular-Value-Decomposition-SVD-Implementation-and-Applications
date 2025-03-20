@@ -1,6 +1,6 @@
 '''
 SVD Lab Homework
-Student: Your Full Name
+Student: Mohammed taha KHAMED
 Date: DD/MM/YYYY
 Course: Mathematics For Machine Learning (MML) 2
 '''
@@ -8,6 +8,8 @@ Course: Mathematics For Machine Learning (MML) 2
 import numpy as np
 import numpy.typing as npt
 from sympy import Matrix
+
+
 
 def compute_at_a(A: npt.NDArray) -> npt.NDArray:
     """
@@ -19,7 +21,8 @@ def compute_at_a(A: npt.NDArray) -> npt.NDArray:
     Returns:
         np.ndarray: The n x n matrix A^T A.
     """
-    # TODO: Compute A^T A.
+    return A.T @ A                      # A transpose *  A
+
 
 
 def compute_a_at(A: npt.NDArray) -> npt.NDArray:
@@ -32,7 +35,9 @@ def compute_a_at(A: npt.NDArray) -> npt.NDArray:
     Returns:
         np.ndarray: The m x m matrix A A^T.
     """
-    # TODO: Compute A A^T.
+    return A @ A.T                       # A * A transpose
+
+
 
 
 def eigen_decomposition(M: npt.NDArray) -> tuple[npt.NDArray, npt.NDArray]:
@@ -46,9 +51,18 @@ def eigen_decomposition(M: npt.NDArray) -> tuple[npt.NDArray, npt.NDArray]:
         eigenvalues (np.ndarray): The eigenvalues of M.
         eigenvectors (np.ndarray): The corresponding eigenvectors of M.
     """
-    # TODO: Compute the eigen-decomposition of M using np.linalg.eigh.
     
-    # TODO: Sort the eigenvalues in descending order and reorder the eigenvectors accordingly.
+    eigenvalues, eigenvectors = np.linalg.eigh(M)    #  Compute eigenvalues and eigenvectors using np.linalg.eigh
+
+    indices = np.argsort(eigenvalues)[::-1]          # Get indices for sorting in descending order
+
+    eigenvalues = eigenvalues[indices]               # Apply sorting to eigenvalues
+
+    eigenvectors = eigenvectors[:, indices]          # Reorder eigenvectors
+
+    return eigenvalues , eigenvectors                # return (eigenvalues, eigenvectors) Ex: eigen_decomposition(M)[0] = eigenvalues
+
+
 
 
 def compute_singular_values(eigenvalues: npt.NDArray) -> npt.NDArray:
@@ -61,9 +75,9 @@ def compute_singular_values(eigenvalues: npt.NDArray) -> npt.NDArray:
     Returns:
         singular_values (np.ndarray): Singular values.
     """
-    # TODO: Ensure non-negative eigenvalues (set any negatives to zero due to numerical errors).
-    
-    # TODO: Compute singular values as the square root of eigenvalues.
+    _new = np.maximum(eigenvalues , 0 )              # convert negative eigenvalues to zero
+
+    return np.sqrt(_new)                             # Compute the square root of the positive eigenvalues
 
 
 def compute_left_singular_vectors(
