@@ -90,20 +90,51 @@ def compute_left_singular_vectors(
 
     Parameters:
         A (np.ndarray): Original m x n matrix.
-        singular_values (np.ndarray): Array of singular values.
+        singular_values (np.ndarray) : Array of singular values.
         right_singular_vectors (np.ndarray): n x n matrix whose columns are the right singular vectors.
 
     Returns:
         U (np.ndarray): m x m matrix whose columns are the left singular vectors.
     """
+
     m, n = A.shape
-    # TODO: Define a tolerance for numerical zero.
+    tol = np.finfo(float).eps * max(m, n) * np.max(singular_values)        # Define a tolerance for numerical zero
     
-    # TODO: Determine r, the number of nonzero singular values (at most min(m, n)).
+    r = np.sum(singular_values > tol)                                      # Determine r, the number of nonzero singular values (at most min(m, n))
     
-    # TODO: Compute U_reduced for each nonzero singular value: u_i = (1/sigma_i) * A * v_i.
+    # Compute U_reduced for each nonzero singular value: u_i = (1/sigma_i) * A * v_i
+    U = np.zeros((m, m))
+
+    for i in range(r):
+        if singular_values[i] > tol:
+            U[:, i] = A @ right_singular_vectors[:, i] / singular_values[i]
     
-    # TODO: If r < m, complete U to a full m x m orthogonal matrix.
+
+    # If r < m, complete U to a full m x m orthogonal matrix using Gram-Schmidt
+    if r < m :
+        # Start with random vectors for the remaining columns
+        remaining_cols = np.random.randn(m, m - r)
+        
+        # Orthogonalize against existing columns of U
+        for j in range(m - r):
+            v = remaining_cols[:, j]
+            # Orthogonalize against all previous vectors
+            for i in range(r + j):
+                v = v - np.dot(v, U[:, i]) * U[:, i]
+            
+            # Normalize
+            norm = np.linalg.norm(v)
+            if norm > tol:  # Check to avoid division by zero
+                U[:, r + j] = v / norm
+            else:
+                # If we get a zero vector, try a different random one
+                new_vec = np.random.randn(m)
+                # Orthogonalize and normalize
+                for i in range(r + j):
+                    new_vec = new_vec - np.dot(new_vec, U[:, i]) * U[:, i]
+                U[:, r + j] = new_vec / np.linalg.norm(new_vec)
+
+    return U 
 
 
 def complete_U(U_reduced: npt.NDArray, A: npt.NDArray) -> npt.NDArray:
@@ -120,18 +151,32 @@ def complete_U(U_reduced: npt.NDArray, A: npt.NDArray) -> npt.NDArray:
     """
     m, r = U_reduced.shape
     assert r < m, "Initial U already has full column rank."
-    # TODO: Compute M = A * A^T.
     
-    # TODO: Convert M to a Sympy Matrix and compute its nullspace using sympy.Matrix.nullspace.
+    M = compute_a_at(A)              # Compute A * A^T
     
-    # TODO: Convert the nullspace basis vectors to a NumPy array.
+    # Convert M to a Sympy Matrix and compute its nullspace
+    M_sympy = Matrix(M.tolist())
+    null_space = M_sympy.nullspace()
+
+
+    # Convert the nullspace basis vectors to a NumPy array
+    null_vectors = np.zeros((m, len(null_space)))
+    for i, vec in enumerate(null_space):
+        null_vectors[:, i] = np.array(vec).astype(float).flatten()
     
-    # TODO: Use only the first (m - r) additional vectors.
+    # Use only the first (m - r) additional vectors
+    additional_vectors = null_vectors[:, :m-r]
     
-    # TODO: Combine U_reduced with the additional vectors.
+    # Combine U_reduced with the additional vectors
+    U = np.zeros((m, m))
+    U[:, :r] = U_reduced
+    U[:, r:] = additional_vectors
     
-    # TODO: (Optional) The resulting U is expected to be orthonormal;
-    # if not, consider orthonormalizing it.
+    # Optional: Ensure orthonormality using QR decomposition
+    Q, R = np.linalg.qr(U)
+    U = Q
+    
+    return U
 
 
 def svd_decomposition(A: npt.NDArray) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
