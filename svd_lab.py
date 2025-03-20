@@ -191,19 +191,31 @@ def svd_decomposition(A: npt.NDArray) -> tuple[npt.NDArray, npt.NDArray, npt.NDA
         Sigma (np.ndarray): m x n diagonal matrix with singular values.
         V (np.ndarray): n x n matrix of right singular vectors.
     """
-    # TODO: Compute A^T * A.
+    # Compute A^T * A.
+    A_transpose_A = compute_at_a(A)
+
+    # Compute eigen-decomposition of A^T * A
+    eigenvalues, eigenvectors = eigen_decomposition(A_transpose_A)
     
-    # TODO: Compute eigen-decomposition of A^T * A.
+    # Compute singular values from eigenvalues
+    singular_values = compute_singular_values(eigenvalues)
     
-    # TODO: Compute singular values from eigenvalues.
+    # Set V to the eigenvectors (right singular vectors)
+    V = eigenvectors
     
-    # TODO: Set V to the eigenvectors (right singular vectors).
-    
-    # TODO: Compute the left singular vectors U.
+    # Compute the left singular vectors U
+    U = compute_left_singular_vectors(A, singular_values, V)
     
     m, n = A.shape
-    # TODO: Construct the Sigma matrix as an m x n diagonal matrix with the singular values on the diagonal.
 
+    # Construct the Sigma matrix as an m x n diagonal matrix with the singular values on the diagonal
+    m, n = A.shape
+    Sigma = np.zeros((m, n))
+    r = min(m, n)
+    for i in range(r):
+        Sigma[i, i] = singular_values[i]
+    
+    return U, Sigma, V
 
 def low_rank_svd(
     U: npt.NDArray,
@@ -225,13 +237,23 @@ def low_rank_svd(
         V_k (np.ndarray): n x k matrix.
     """
     m, n = Sigma.shape
-    # TODO: Check that k is not larger than min(m, n) and raise an error if it is.
+
+    # Check that k is not larger than min(m, n) and raise an error if it is
+    _min = min(m, n)
+    if k > _min :
+        raise ValueError(f"k ({k}) cannot be larger than min(m, n) ({_min})")
     
-    # TODO: Extract the first k columns of U to form U_k.
     
-    # TODO: Extract the top-left k x k submatrix of Sigma to form Sigma_k.
+    # Extract the first k columns of U to form U_k
+    U_k = U[:, :k]
     
-    # TODO: Extract the first k columns of V to form V_k.
+    # Extract the top-left k x k submatrix of Sigma to form Sigma_k
+    Sigma_k = Sigma[:k, :k]
+    
+    # Extract the first k columns of V to form V_k
+    V_k = V[:, :k]
+    
+    return U_k, Sigma_k, V_k
 
 
 def main():
