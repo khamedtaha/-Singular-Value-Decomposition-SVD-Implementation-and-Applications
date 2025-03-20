@@ -1,7 +1,7 @@
 '''
 SVD Lab Homework
 Student: Mohammed taha KHAMED
-Date: DD/MM/YYYY
+Date: 19/03/2025
 Course: Mathematics For Machine Learning (MML) 2
 '''
 
@@ -52,7 +52,7 @@ def eigen_decomposition(M: npt.NDArray) -> tuple[npt.NDArray, npt.NDArray]:
         eigenvectors (np.ndarray): The corresponding eigenvectors of M.
     """
     
-    eigenvalues, eigenvectors = np.linalg.eigh(M)    #  Compute eigenvalues and eigenvectors using np.linalg.eigh
+    eigenvalues, eigenvectors = np.linalg.eigh(M)    # Compute eigenvalues and eigenvectors using np.linalg.eigh
 
     indices = np.argsort(eigenvalues)[::-1]          # Get indices for sorting in descending order
 
@@ -96,46 +96,56 @@ def compute_left_singular_vectors(
     Returns:
         U (np.ndarray): m x m matrix whose columns are the left singular vectors.
     """
-
     m, n = A.shape
-    tol = np.finfo(float).eps * max(m, n) * np.max(singular_values)        # Define a tolerance for numerical zero
-    
-    r = np.sum(singular_values > tol)                                      # Determine r, the number of nonzero singular values (at most min(m, n))
-    
-    # Compute U_reduced for each nonzero singular value: u_i = (1/sigma_i) * A * v_i
-    U = np.zeros((m, m))
 
-    for i in range(r):
+    # Define a tolerance for numerical zero
+    tol = np.finfo(float).eps * max(m, n) * np.max(singular_values)        
+    
+    # The number of singular values is at most min(m, n)
+    r = min(min(m, n), np.sum(singular_values > tol))
+    
+    
+    # Compute U_reduced for each nonzero singular value: u_i = (1/sigma_i) * A * v_i.
+    U = np.zeros((m, m))
+    
+    
+    for i in range(r):                                            # Compute the first r columns of U for nonzero singular values
         if singular_values[i] > tol:
             U[:, i] = A @ right_singular_vectors[:, i] / singular_values[i]
     
+                                        
+    for i in range(r):                                            # Normalize columns to ensure orthonormality
+        norm = np.linalg.norm(U[:, i])
+        if norm > tol:
+            U[:, i] = U[:, i] / norm
+    
 
-    # If r < m, complete U to a full m x m orthogonal matrix using Gram-Schmidt
-    if r < m :
-        # Start with random vectors for the remaining columns
-        remaining_cols = np.random.randn(m, m - r)
+    # If r < m, complete U to a full m x m orthogonal matrix
+    if r < m:
+        # Use QR decomposition to find orthonormal basis
+        # First, create a random matrix
+        Q = np.eye(m)
+        # Make it orthogonal to existing columns
+        for i in range(r):
+            for j in range(m):
+                Q[:, j] = Q[:, j] - np.dot(Q[:, j], U[:, i]) * U[:, i]
         
-        # Orthogonalize against existing columns of U
+        # Use QR to get orthonormal basis for remaining columns
+        remaining_Q, _ = np.linalg.qr(Q)
+        
+        # Check orthogonality with existing columns and set remaining columns
         for j in range(m - r):
-            v = remaining_cols[:, j]
-            # Orthogonalize against all previous vectors
-            for i in range(r + j):
+            v = remaining_Q[:, j]
+            # Orthogonalize against existing vectors
+            for i in range(r):
                 v = v - np.dot(v, U[:, i]) * U[:, i]
             
             # Normalize
             norm = np.linalg.norm(v)
-            if norm > tol:  # Check to avoid division by zero
+            if norm > tol:
                 U[:, r + j] = v / norm
-            else:
-                # If we get a zero vector, try a different random one
-                new_vec = np.random.randn(m)
-                # Orthogonalize and normalize
-                for i in range(r + j):
-                    new_vec = new_vec - np.dot(new_vec, U[:, i]) * U[:, i]
-                U[:, r + j] = new_vec / np.linalg.norm(new_vec)
-
-    return U 
-
+    
+    return U
 
 def complete_U(U_reduced: npt.NDArray, A: npt.NDArray) -> npt.NDArray:
     """
@@ -204,7 +214,7 @@ def svd_decomposition(A: npt.NDArray) -> tuple[npt.NDArray, npt.NDArray, npt.NDA
     V = eigenvectors
     
     # Compute the left singular vectors U
-    U = compute_left_singular_vectors(A, singular_values, V)
+    U = compute_left_singular_vectors(A, singular_values, V )
     
     m, n = A.shape
 
@@ -267,14 +277,14 @@ def main():
                   [5, 7, 9]], dtype=float)
     ]
 
-    # TODO: Choose an example matrix to test.
+    # Choose an example matrix to test.
     A = examples[0]
     
     print('Original matrix A:')
     print(A)
     
-    # TODO: Perform SVD decomposition.
-    U, Sigma, V = ...
+    # Perform SVD decomposition.
+    U, Sigma, V = svd_decomposition(A)
     
     print('\nComputed U:')
     print(U)
@@ -283,34 +293,35 @@ def main():
     print('\nComputed V:')
     print(V)
     
-    # TODO: Reconstruct A from U, Sigma, and V^T.
-    A_reconstructed = ...
+    # Reconstruct A from U, Sigma, and V^T.
+    A_reconstructed = U @ Sigma @ V.T
     print('\nReconstructed A:')
     print(A_reconstructed)
 
-    # TODO: Compute the element-wise difference matrix between A and A_reconstructed.
-    diff_matrix = ...
+    # Compute the element-wise difference matrix between A and A_reconstructed.
+    diff_matrix =  A - A_reconstructed
     
-    # TODO: Compute the reconstruction error (error) using the Frobenius norm.
-    ...
+    # Compute the reconstruction error (error) using the Frobenius norm.
+    error = np.linalg.norm(diff_matrix, 'fro')
     print('\nReconstruction error (Frobenius norm):', error)
-    # TODO: Check if error is close to zero (True/False).
-    print('Close to zero?', ...)
+    # Check if error is close to zero (True/False).
+    print('Close to zero?', np.isclose(error, 0) )
 
     # Extra credit: Compute the reconstruction error using Frobenius norm's trace formula.
-    # TODO: Compute trace_error.
-    ...
+    # Compute trace_error.
+    trace_error = np.sqrt(np.trace(diff_matrix.T @ diff_matrix))
     print('\nReconstruction error (Trace formula):', trace_error)
     # TODO: Check if trace_error is close to zero (True/False).
-    print('Close to zero?', ...)
+    print('Close to zero?', np.isclose(trace_error, 0))
 
     # Extra credit: Compute the reconstruction error using Frobenius norm's singular values formula.
     # Hint: use your svd_decomposition function with the difference matrix.
-    # TODO: Compute sigma_error.
-    ...
+    #  Compute sigma_error.
+    _ , singular_values_diff , _ = svd_decomposition(diff_matrix)
+    trace_sigma = np.sqrt(np.sum(np.square(np.diag(singular_values_diff))))
     print('\nReconstruction error (Singular values formula):', trace_sigma)
-    # TODO: Check if sigma_error is close to zero (True/False).
-    print('Close to zero?', ...)
+    # Check if sigma_error is close to zero (True/False).
+    print('Close to zero?', np.isclose(trace_sigma, 0) )
 
     # To complete the extra points, do your own research and link your sources for any formulas you use
     # If you do not wish to solve the additional problems, comment their associated code lines
