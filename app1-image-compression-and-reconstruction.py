@@ -6,7 +6,7 @@ from PIL import Image
 
 # TODO: When ready, import your SVD decomposition function.
 # Uncomment the line below when ready.
-#from svd_lab import svd_decomposition, low_rank_svd
+from svd_lab import svd_decomposition, low_rank_svd
 
 def image_compression(U, Sigma, V, k):
     """
@@ -22,11 +22,11 @@ def image_compression(U, Sigma, V, k):
     Returns:
     - A_reconstructed: The reconstructed image.
     """
-    # TODO: Extract the top-k components.
-    ...
+    # Extract the top-k components.
+    U_k, Sigma_k, V_k = low_rank_svd(U ,Sigma, V ,  k)
     
-    # TODO: Reconstruct the image using the truncated SVD components.
-    A_reconstructed = ...
+    # Reconstruct the image using the truncated SVD components.
+    A_reconstructed =   U_k @ Sigma_k @ V_k.T
 
     return A_reconstructed
 
@@ -49,8 +49,8 @@ def main():
     print(f'm = {m}')
     print(f'n = {n}')
     
-    # TODO: Compute the SVD of the image using your svd_decomposition function.
-    ...
+    # Compute the SVD of the image using your svd_decomposition function.
+    U, Sigma, V = svd_decomposition(A)
 
     print('U:', U.shape)
     print('Sigma:', Sigma.shape)
@@ -72,8 +72,8 @@ def main():
 
     # Loop over each k, reconstruct the image, and display.
     for i, k in enumerate(k_values, start=2):
-        # TODO: Reconstruct the image using the current k value.
-        A_reconstructed = ...
+        # Reconstruct the image using the current k value.
+        A_reconstructed = image_compression(U, Sigma, V, k)
         plt.subplot(1, num_plots, i)
         plt.imshow(A_reconstructed, cmap='gray')
         plt.title(f'Reconstructed Image (k={k})')
