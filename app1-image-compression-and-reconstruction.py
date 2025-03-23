@@ -26,7 +26,7 @@ def image_compression(U, Sigma, V, k):
     U_k, Sigma_k, V_k = low_rank_svd(U ,Sigma, V ,  k)
     
     # Reconstruct the image using the truncated SVD components.
-    A_reconstructed =   U_k @ Sigma_k @ V_k.T
+    A_reconstructed =   U_k @ Sigma_k @ V_k
 
     return A_reconstructed
 

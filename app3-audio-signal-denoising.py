@@ -6,9 +6,9 @@ from scipy.io import wavfile
 from scipy.io.wavfile import write
 from scipy.signal import stft, istft
 
-# TODO: When ready, import your SVD decomposition function.
+# When ready, import your SVD decomposition function.
 # Uncomment the line below when ready.
-#from svd_lab import svd_decomposition, low_rank_svd
+from svd_lab import svd_decomposition, low_rank_svd
 
 
 def read_audio(audio_path):
@@ -71,11 +71,11 @@ def audio_denoising(sample_rate, phase, U, Sigma, V, k):
     Returns:
     - audio_denoised: The denoised audio signal after inverse STFT.
     """
-    # TODO: Truncate the SVD components to retain only the top k singular values.
-    ...
+    # Truncate the SVD components to retain only the top k singular values.
+    U_k, Sigma_k, V_k = low_rank_svd(U, Sigma, V, k)
     
-    # TODO: Reconstruct the magnitude spectrogram using the truncated SVD components.
-    magnitude_reconstructed = ...
+    # Reconstruct the magnitude spectrogram using the truncated SVD components.
+    magnitude_reconstructed = U_k @ Sigma_k @ V_k
     
     # Recombine the reconstructed magnitude with the original phase to form the complex spectrogram.
     Zxx_reconstructed = magnitude_reconstructed * np.exp(1j * phase)
@@ -92,14 +92,14 @@ def main():
     # List of audio files to test.
     audio_files = ['sp01_station_sn15.wav', 'sp07_station_sn15.wav']
 
-    # TODO: Choose an example audio file to test.
-    audio_file = audio_files[0]
+    # Choose an example audio file to test.
+    audio_file = audio_files[1]
     
     audio_path = os.path.join(audios_path, audio_file)
     
-    # TODO: Set the number of singular values (latent factors) to retain.
+    # Set the number of singular values (latent factors) to retain.
     # Experiment with different values (e.g., k=5, k=15, k=25, k=50).
-    k = 25
+    k = 50
 
     # Read the audio file.
     audio, sample_rate = read_audio(audio_path)
@@ -110,11 +110,11 @@ def main():
     # Debugging info: print the shape of the magnitude spectrogram.
     print(magnitude.shape)
 
-    # TODO: Apply SVD on the magnitude spectrogram using your svd_decomposition function.
-    ...
+    # Apply SVD on the magnitude spectrogram using your svd_decomposition function.
+    U, Sigma, V = svd_decomposition(magnitude)
 
-    # TODO: Denoise the audio using the truncated SVD.
-    audio_denoised = ...
+    # Denoise the audio using the truncated SVD.
+    audio_denoised = audio_denoising(sample_rate, phase, U, Sigma, V, k)
 
     # Plot the original and denoised audio signals.
     plt.figure(figsize=(12, 8))

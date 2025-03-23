@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 
-# TODO: When ready, import your SVD decomposition function.
+# When ready, import your SVD decomposition function.
 # Uncomment the line below when ready.
-#from svd_lab import svd_decomposition, low_rank_svd
+from svd_lab import svd_decomposition, low_rank_svd
 
 def load_ratings_matrix(file_path):
     """
@@ -34,14 +34,14 @@ def recommender_svd(ratings, k):
     Returns:
     - ratings_pred: The reconstructed ratings matrix as a low-rank approximation.
     """
-    # TODO: Compute the SVD of the ratings matrix using your svd_decomposition function.
-    ...
+    # Compute the SVD of the ratings matrix using your svd_decomposition function.
+    U, Sigma, V = svd_decomposition(ratings)
     
-    # TODO: Truncate the SVD components to keep only the top k latent factors.
-    ...
+    # Truncate the SVD components to keep only the top k latent factors.
+    U_k, Sigma_k, V_k = low_rank_svd(U, Sigma, V, k)
     
-    # TODO: Reconstruct the ratings matrix using the truncated SVD components.
-    ratings_pred = ...
+    # Reconstruct the ratings matrix using the truncated SVD components.
+    ratings_pred =  U_k @ Sigma_k @ V_k
     return ratings_pred
 
 def main():
@@ -53,11 +53,11 @@ def main():
     print(f'Number of users = {m}')
     print(f'Number of movies = {n}')
     
-    # TODO: Set the number of latent factors (k) to experiment with.
+    # Set the number of latent factors (k) to experiment with.
     k = 25
     
-    # TODO: Generate the predicted ratings matrix using the SVD-based recommender.
-    predicted_ratings = ...
+    # Generate the predicted ratings matrix using the SVD-based recommender.
+    predicted_ratings = recommender_svd(ratings, k)
     
     print("Original Ratings Matrix:")
     print(ratings)

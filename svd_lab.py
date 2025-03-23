@@ -261,7 +261,7 @@ def low_rank_svd(
     Sigma_k = Sigma[:k, :k]
     
     # Extract the first k columns of V to form V_k
-    V_k = V[:, :k]
+    V_k = V[:, :k].T
     
     return U_k, Sigma_k, V_k
 
